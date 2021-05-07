@@ -1,0 +1,24 @@
+<app-main-content>
+  <app-content-header (back)="onBack()" title="用户详情" showArrow="true">
+    <button nz-button type="button" nzType="primary">
+      <i nz-icon nzType="edit" nzTheme="outline"></i>
+      编辑
+    </button>
+  </app-content-header>
+  <app-content-body>
+    <nz-descriptions>
+      <nz-descriptions-item nzTitle="用户名">
+        <nz-typography (nzContentChange)="save($event)"
+                       [nzEditable]="currentUser.id!==user.id"
+                       [(nzContent)]="user.username">
+          {{user?.username}}
+        </nz-typography>
+      </nz-descriptions-item>
+      <nz-descriptions-item nzTitle="角色">{{user?.roles}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="电话">{{user?.phone}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="邮箱">{{user?.email}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="创建时间">{{user?.createTime | date: 'yyyy-MM-dd'}}</nz-descriptions-item>
+      <nz-descriptions-item nzTitle="用户状态"><nz-badge [nzStatus]="user?.status ? 'success' : 'error'" [nzText]="user?.status ? '正常' : '禁用'"></nz-badge></nz-descriptions-item>
+    </nz-descriptions>
+  </app-content-body>
+</app-main-content>

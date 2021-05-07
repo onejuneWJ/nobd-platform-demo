@@ -1,0 +1,88 @@
+<nz-layout class="app-layout">
+  <nz-sider class="menu-sidebar"
+            nzCollapsible
+            nzWidth="250px"
+            [(nzCollapsed)]="isCollapsed"
+            [nzTrigger]="null"
+  >
+
+    <div class="sidebar-logo">
+      <a routerLink="index" (click)="addTab({title: '首页', path: '/index', hash: 'sy-sy'})">
+        <img src="assets/ant-logo.svg" alt="logo">
+        <h1 class="sidebar-title-show">网优大数据平台</h1>
+      </a>
+    </div>
+    <ul class="sidebar-menu" nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
+
+      <li *ngFor="let menu of allMenu"
+          nz-submenu
+          [nzOpen]="rla.isActive"
+          routerLinkActive #rla="routerLinkActive"
+          nzTitle="{{menu.title}}" nzIcon="{{menu.icon}}">
+        <ul>
+          <li *ngFor="let child of menu.childrenList" nz-menu-item nzMatchRouter>
+            <a (click)="addTab(child)"
+               routerLink="{{child.path}}">
+              {{child.title}}
+            </a>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </nz-sider>
+  <nz-layout class="right-layout">
+    <header class="ant-layout-header" style="height: 48px; line-height: 48px; background: transparent;"></header>
+    <nz-header class="app-header app-header-no-collapsed">
+      <span class="header-trigger" (click)="collapsedChange()">
+            <i class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i>
+      </span>
+      <div class="right">
+        <div class="time">{{nowDate | date: "yyyy年MM月dd日 HH时mm分ss秒"}}</div>
+        <nz-avatar style="margin-right: 16px" nzSize="large" [nzSrc]="user?.icon" [nzIcon]="user?.icon"></nz-avatar>
+        <span class="username" nz-dropdown [nzDropdownMenu]="menu">
+          {{user?.username}}
+        </span>
+      </div>
+      <nz-dropdown-menu #menu="nzDropdownMenu">
+        <ul nz-menu>
+          <li nz-menu-item>
+            <a routerLink="/person"
+               (click)="addTab({title: '个人中心', path: '/person', hash: 'grzx'})"
+            >
+              个人中心
+            </a>
+          </li>
+          <li nz-menu-item (click)="logout()">
+            <span>注销</span>
+          </li>
+        </ul>
+      </nz-dropdown-menu>
+    </nz-header>
+    <nz-layout class="main-content">
+
+      <div class="tabs-container">
+        <nz-tabset
+          (nzClose)="closeTab($event)"
+          [(nzSelectedIndex)]="selectedIndex"
+          [nzType]="'editable-card'"
+          class="tab-menu"
+          nzHideAdd
+          nzSize="small"
+        >
+          <nz-tab
+            (nzClick)="selectTab(tab)"
+            [nzTitle]="tab.title"
+            *ngFor="let tab of tabs"
+            nzClosable>
+
+          </nz-tab>
+        </nz-tabset>
+      </div>
+      <nz-content class="inner-content">
+
+        <router-outlet></router-outlet>
+
+      </nz-content>
+    </nz-layout>
+  </nz-layout>
+</nz-layout>

@@ -1,0 +1,193 @@
+<app-main-content>
+  <app-content-header title="角色列表">
+    <button
+      nz-button
+      nzType="primary"
+      (click)="showCUModal('新增角色',true)">
+      <i nz-icon nzType="plus"></i>新建
+    </button>
+  </app-content-header>
+  <app-content-body>
+
+    <div class="toolbar">
+      <form
+        nz-form
+        nzLayout="inline"
+        [formGroup]="searchForm">
+        <div nz-row [nzGutter]="24">
+          <nz-col [nzSpan]="4">
+            <nz-form-item>
+              <nz-form-control>
+                <input formControlName="name" nz-input placeholder="角色名称"/>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="4">
+            <nz-form-item>
+              <button nz-button nzType="default" type="reset">重置</button>
+
+              <button nz-button nzType="primary" (click)="search()" class="search-btn">查询</button>
+            </nz-form-item>
+          </nz-col>
+        </div>
+      </form>
+    </div>
+    <div>
+      <nz-table
+        nzBordered #roleTable
+        nzSize="small"
+        nzShowPagination
+        [nzShowSizeChanger]="true"
+        [nzLoading]="tableLoading"
+        [nzData]="dataList"
+        [nzTotal]="total"
+        (nzQueryParams)="search($event)"
+      >
+        <thead>
+        <tr>
+          <th nzWidth="80px">序号</th>
+          <th nzWidth="250px" nzAlign="center">角色名称</th>
+          <th nzWidth="250px" nzAlign="center">角色描述</th>
+          <th nzWidth="250px" nzAlign="center">创建时间</th>
+          <th nzWidth="200px" nzAlign="center">状态</th>
+          <th nzWidth="100px" nzAlign="center">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let role of roleTable.data">
+          <td>{{role.id}}</td>
+          <td nzAlign="center">{{role.name}}</td>
+          <td nzAlign="center">{{role.description}}</td>
+          <td nzAlign="center">{{role.createTime | date:"yyyy/MM/dd"}}</td>
+          <td nzAlign="center">
+            <nz-switch
+              [nzDisabled]="canDisable(role)"
+              [nzCheckedChildren]="'启用'"
+              [nzUnCheckedChildren]="'禁用'"
+              [ngModel]="role.status==1"
+              (ngModelChange)="enable(role.id, $event)">
+            </nz-switch>
+          </td>
+          <td nzAlign="center">
+            <nz-space>
+              <nz-space-item>
+                <button nz-button nzType="link" (click)="showMenuModal(role.id)">分配菜单</button>
+              </nz-space-item>
+              <nz-space-item>
+                <button nz-button nzType="link" (click)="showSourceModal(role.id)">分配资源</button>
+              </nz-space-item>
+              <nz-space-item>
+                <button nz-button nzType="link" (click)="showCUModal('编辑角色',false, role)">编辑</button>
+              </nz-space-item>
+              <nz-space-item>
+                <button nz-button nzDanger nzType="link" [disabled]="canDisable(role)" (click)="delete(role.id)">删除
+                </button>
+              </nz-space-item>
+            </nz-space>
+          </td>
+        </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </app-content-body>
+</app-main-content>
+<!--新增或修改角色模态框-->
+<nz-modal [(nzVisible)]="cuModalVisible"
+          [nzTitle]="cuModalTitle"
+          (nzOnCancel)="onCUCancel()"
+          (nzOnOk)="onCUOk()"
+          [nzOkText]="'确定'"
+          [nzCancelText]="'取消'"
+>
+  <form nz-form
+        [formGroup]="dataForm">
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title" nzRequired>角色名称</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入角色名称">
+        <input formControlName="name" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title">角色描述</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input formControlName="description" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title">是否启用</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <nz-switch formControlName="status"></nz-switch>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title">角色排序</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <nz-input-number formControlName="sort"></nz-input-number>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</nz-modal>
+<!--分配菜单模态框-->
+<nz-modal [(nzVisible)]="menuModalVisible"
+          [nzTitle]="'分配菜单'"
+          (nzOnCancel)="onMenuCancel()"
+          (nzOnOk)="onMenuOk()"
+          [nzOkText]="'确定'"
+          [nzCancelText]="'取消'"
+          [nzOkLoading]="menuOkLoading"
+>
+  <nz-tree
+    #nzTreeComponent
+    [nzData]="menuTree"
+    nzCheckable
+    [nzCheckedKeys]="selectedMenuId"
+  >
+  </nz-tree>
+</nz-modal>
+<!--分配资源权限模态框-->
+<nz-modal
+  nzWidth="600px"
+  [(nzVisible)]="sourceModalVisible"
+  [nzTitle]="'分配权限'"
+  (nzOnCancel)="onSourceCancel()"
+  (nzOnOk)="onSourceOk()"
+  [nzOkText]="'确定'"
+  [nzCancelText]="'取消'">
+
+  <nz-table
+    #sourceTable
+    nzBordered
+    [nzFrontPagination]="false"
+    [nzTotal]="sourceTotal"
+    nzSize="small"
+    [nzLoading]="sourceLoading"
+    [nzData]="sourceList"
+  >
+    <thead>
+    <tr>
+      <th
+        nzWidth="60px"
+        [nzChecked]="checked"
+        [nzIndeterminate]="indeterminate"
+        (nzCheckedChange)="onAllChecked($event)"
+      >
+      </th>
+      <th nzWidth="" nzAlign="center">接口名称</th>
+      <th nzWidth="" nzAlign="center">路径</th>
+      <th nzWidth="" nzAlign="center">请求方法</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let api of sourceTable.data">
+      <td [nzChecked]="setOfCheckedId.has(api.id)"
+          [nzDisabled]="api.disabled"
+          (nzCheckedChange)="onItemChecked(api.id, $event)"
+      >
+      </td>
+      <td nzAlign="center">{{api.name}}</td>
+      <td nzAlign="center">{{api.url}}</td>
+      <td nzAlign="center">{{api.type}}</td>
+    </tr>
+    </tbody>
+  </nz-table>
+</nz-modal>

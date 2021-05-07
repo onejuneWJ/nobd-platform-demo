@@ -1,0 +1,208 @@
+<app-main-content>
+  <app-content-header [title]="'用户列表'">
+    <button class="opr-btn" nz-button
+            nzType="primary"
+            type="button"
+            (click)="showCUModal('新增用户',true)">
+      <i nz-icon nzType="plus"></i>新建
+    </button>
+  </app-content-header>
+  <app-content-body>
+
+    <div class="toolbar">
+      <form
+        nz-form
+        nzLayout="inline"
+        [formGroup]="searchForm">
+        <div nz-row [nzGutter]="24">
+          <nz-col [nzSpan]="4">
+            <nz-form-item>
+              <nz-form-control>
+                <input formControlName="username" nz-input placeholder="用户名"/>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="4">
+            <nz-form-item>
+              <button nz-button nzType="default" type="reset">重置</button>
+              <button nz-button nzType="primary" (click)="search()" class="search-btn">查询</button>
+            </nz-form-item>
+          </nz-col>
+        </div>
+      </form>
+    </div>
+
+
+    <div>
+      <nz-table
+        [nzBordered]="true" #userTable
+        [nzShowPagination]="true"
+        [nzFrontPagination]="false"
+        [nzSize]="'small'"
+        [nzLoading]="nzLoading"
+        [nzData]="dataList"
+        [nzTotal]="total"
+        [(nzPageSize)]="pageRequest.size"
+        [(nzPageIndex)]="pageRequest.page"
+        (nzQueryParams)="search($event)"
+      >
+        <thead>
+        <tr>
+          <th nzWidth="80px">序号</th>
+          <th nzWidth="150px">用户名</th>
+          <th nzWidth="250px">角色</th>
+          <th nzWidth="50px">邮箱</th>
+          <th nzColumnKey="createTime" nzWidth="150px"
+              nzAlign="center"
+              [nzSortFn]="true">创建时间
+          </th>
+          <th nzWidth="150px" nzAlign="center">备注</th>
+          <th nzWidth="100px" nzAlign="center">状态</th>
+          <th nzWidth="50px" nzAlign="center">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let user of userTable.data,index as i">
+          <td>{{i + 1}}</td>
+          <td>
+            <a [routerLink]="['detail',user.id]">
+              {{user.username}}
+            </a>
+          </td>
+          <td>
+            <nz-space>
+              <nz-space-item *ngFor="let role of user.roles">
+                {{role.name}}
+              </nz-space-item>
+            </nz-space>
+            {{user.roles.length === 0 ? '无' : ''}}
+          </td>
+          <td>{{user.email}}</td>
+          <td nzAlign="center">{{user.createTime | date:"yyyy-MM-dd"}}</td>
+          <td>{{user.note}}</td>
+          <td nzAlign="center">
+            <nz-switch
+              [nzDisabled]="user.id===currentUser?.id"
+              [nzCheckedChildren]="'启用'"
+              [nzUnCheckedChildren]="'禁用'"
+              [ngModel]="user.status"
+              (ngModelChange)="enable(user.id, $event)">
+            </nz-switch>
+          </td>
+          <td nzAlign="center">
+            <nz-space>
+              <nz-space-item>
+                <button nz-button nzType="link" (click)="showRoleModal(user.id)">分配角色</button>
+              </nz-space-item>
+              <nz-space-item>
+                <button nz-button nzType="link" (click)="showCUModal('修改用户',false, user)">编辑</button>
+              </nz-space-item>
+              <nz-space-item>
+                <button nz-button nzDanger nzType="link" [disabled]="user.id===currentUser?.id"
+                        (click)="delete(user.id)">删除
+                </button>
+              </nz-space-item>
+            </nz-space>
+          </td>
+        </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </app-content-body>
+</app-main-content>
+
+<!--分配角色modal-->
+<nz-modal [nzTitle]="'分配角色'"
+          (nzOnOk)="onRoleOk()"
+          (nzOnCancel)="onRoleCancel()"
+          [(nzVisible)]="roleVisible"
+          [nzOkText]="'确定'"
+          [nzCancelText]="'取消'"
+>
+  <nz-select
+    nzMode="multiple"
+    nzPlaceHolder="请选择角色"
+    [(ngModel)]="listOfSelectedValue"
+    [compareWith]="compareFn"
+  >
+    <nz-option *ngFor="let item of listOfOption" [nzLabel]="item.name" [nzValue]="item"></nz-option>
+  </nz-select>
+</nz-modal>
+<!--新增或修改用户modal-->
+<nz-modal
+  [nzTitle]="modalTitle"
+  [nzVisible]="cuVisible"
+  (nzOnOk)="onCUOk()"
+  (nzOnCancel)="onCUCancel()"
+  [nzOkDisabled]="!dataForm.valid"
+  [nzOkText]="'确定'"
+  [nzCancelText]="'取消'"
+  [nzOkLoading]="cuOkLoading"
+>
+  <form nz-form [formGroup]="dataForm">
+
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="username" nzRequired>用户名</nz-form-label>
+      <nz-form-control
+        [nzSm]="14" [nzXs]="24" nzHasFeedback [nzErrorTip]="usernameError">
+        <input placeholder="用户名" formControlName="username" nz-input/>
+        <ng-template #usernameError let-control>
+          <ng-container *ngIf="control.hasError('required')">请输入用户名</ng-container>
+          <ng-container *ngIf="control.hasError('duplicated')">用户名已存在</ng-container>
+          <ng-container *ngIf="control.hasError('minlength')">用户名太短了</ng-container>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item *ngIf="isAdd">
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="password" nzRequired>密码</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzHasFeedback [nzErrorTip]="passwordError">
+        <nz-input-group [nzSuffix]="suffixTemplate">
+          <input type="password" [type]="passwordVisible ? 'text' : 'password'"
+                 placeholder="密码" formControlName="password" nz-input/>
+        </nz-input-group>
+        <ng-template #passwordError let-control>
+          <ng-container *ngIf="control.hasError('required')">密码不能为空</ng-container>
+          <ng-container *ngIf="control.hasError('pattern')">密码格式不正确</ng-container>
+        </ng-template>
+        <ng-template #suffixTemplate>
+          <i nz-icon [nzType]="passwordVisible ? 'eye-invisible' : 'eye'"
+             (click)="passwordVisible = !passwordVisible"></i>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item *ngIf="isAdd">
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="confirmPassword" nzRequired>确认密码</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzHasFeedback [nzErrorTip]="confirmPasswordError">
+        <input type="password" placeholder="密码" formControlName="confirmPassword" nz-input/>
+        <ng-template #confirmPasswordError let-control>
+          <ng-container *ngIf="control.hasError('required')">请确认你的密码</ng-container>
+          <ng-container *ngIf="control.hasError('confirm')">两次密码输入不一致</ng-container>
+        </ng-template>
+
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="icon">头像图标</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input placeholder="头像图标" formControlName="icon" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="email" nzRequired>邮箱</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzHasFeedback [nzErrorTip]="emailError">
+        <input placeholder="邮箱" formControlName="email" nz-input type="email"/>
+        <ng-template #emailError let-control>
+          <ng-container *ngIf="control.hasError('required')">邮箱不能为空</ng-container>
+          <ng-container *ngIf="control.hasError('email')">邮箱格式不正确</ng-container>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="note">备注</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input placeholder="备注" formControlName="note" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+
+</nz-modal>

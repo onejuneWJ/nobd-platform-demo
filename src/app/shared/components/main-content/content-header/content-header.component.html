@@ -1,0 +1,18 @@
+<div class="header-left">
+  <!--返回箭头-->
+  <div (click)="onBackClick()" *ngIf="showArrow" class="ant-page-header-back ng-star-inserted back-icon">
+    <div role="button" tabindex="0" class="ant-page-header-back-button">
+      <i nz-icon nzType="arrow-left" nzTheme="outline">
+      </i>
+    </div>
+  </div>
+  <!--标题-->
+  <div class="title">
+    <span>{{title}}</span>
+  </div>
+</div>
+<nz-page-header-extra class="header-right">
+  <ng-content>
+
+  </ng-content>
+</nz-page-header-extra>

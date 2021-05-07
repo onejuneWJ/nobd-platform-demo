@@ -1,0 +1,10 @@
+export enum StatusCode {
+  SUCCESS = 200,
+  NO_CONTENT = 204,
+  UNAUTHORIZED = 401,
+  FORBIDDEN = 403,
+  NOTFOUND = 404,
+  FAILED = 500,
+  GATEWAY_TIMEOUT = 504,
+
+}

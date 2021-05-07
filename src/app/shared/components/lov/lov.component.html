@@ -1,0 +1,20 @@
+<form [formGroup]="form">
+  <nz-input-group (click)="onClick()" [nzSuffix]="suffixIconSearch">
+    <input [value]="value" type="text" readonly nz-input/>
+  </nz-input-group>
+</form>
+<ng-template #suffixIconSearch>
+  <i nz-icon nzType="search"></i>
+</ng-template>
+
+<!--模态框-->
+<nz-modal
+  [(nzVisible)]="modalVisible"
+  (nzOnCancel)="onCancel()"
+  (nzOnOk)="onOk()"
+  nzOkText="确定"
+  nzCancelText="取消"
+  nzTitle="请选择"
+>
+
+</nz-modal>

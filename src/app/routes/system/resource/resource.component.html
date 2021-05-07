@@ -1,0 +1,122 @@
+<app-main-content>
+  <app-content-header title="接口资源列表">
+
+    <button nz-button nzType="primary" (click)="showAddModal()" type="button">
+      <i nz-icon nzType="plus"></i>新建
+    </button>
+    <button nz-button nzType="default" (click)="refreshApis()" type="button">刷新接口</button>
+  </app-content-header>
+  <app-content-body>
+
+    <div class="toolbar">
+      <form
+        nz-form
+        nzLayout="inline"
+        [formGroup]="searchForm">
+        <div nz-row [nzGutter]="24">
+          <nz-col [nzSpan]="4">
+            <nz-form-item>
+              <nz-form-control>
+                <input formControlName="name" nz-input placeholder="资源名称"/>
+              </nz-form-control>
+            </nz-form-item>
+          </nz-col>
+          <nz-col [nzSpan]="4">
+            <nz-form-item>
+              <button nz-button nzType="default" type="reset">重置</button>
+              <button nz-button nzType="primary" (click)="search()" class="search-btn">查询</button>
+            </nz-form-item>
+          </nz-col>
+        </div>
+      </form>
+    </div>
+    <nz-table
+      nzBordered #basicTable
+      nzSize="small"
+      nzShowPagination
+      [nzShowSizeChanger]="true"
+      [nzFrontPagination]="false"
+      [nzLoading]="tableLoading"
+      [nzData]="dataList"
+      [nzTotal]="total"
+      (nzQueryParams)="search($event)"
+    >
+      <thead>
+      <tr>
+        <th nzWidth="80px">序号</th>
+        <th nzWidth="250px" nzAlign="center">接口名称</th>
+        <th nzWidth="250px" nzAlign="center">接口描述</th>
+        <th nzWidth="250px" nzAlign="center">创建时间</th>
+        <th nzWidth="200px" nzAlign="center">路径</th>
+        <th nzWidth="100px" nzAlign="center">操作</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let resource of basicTable.data; index as index">
+        <td>{{index + 1}}</td>
+        <td nzAlign="center">{{resource.name}}</td>
+        <td nzAlign="center">{{resource.description}}</td>
+        <td nzAlign="center">{{resource.createTime | date:"yyyy/MM/dd"}}</td>
+        <td nzAlign="center">{{resource.url}}</td>
+        <td nzAlign="center">
+          <nz-space>
+            <nz-space-item>
+              <a nz-button nzType="link">编辑</a>
+            </nz-space-item>
+            <nz-space-item>
+              <a nz-button nzDanger nzType="link" (click)="delete(resource.id)">删除</a>
+            </nz-space-item>
+          </nz-space>
+        </td>
+      </tr>
+      </tbody>
+    </nz-table>
+  </app-content-body>
+</app-main-content>
+
+<!--添加资源modal-->
+<nz-modal
+  nzWidth="700px"
+  nzTitle="添加资源"
+  [nzVisible]="addModalVisible"
+  (nzOnCancel)="onAddCancel()"
+  (nzOnOk)="onAddOk()"
+>
+
+  <nz-table
+    #apiAddTable
+    nzBordered
+    [nzSize]="'small'"
+    [nzLoading]="addLoading"
+    [nzData]="apiList"
+    (nzCurrentPageDataChange)="onCurrentPageDataChange($event)"
+  >
+    <thead>
+    <tr>
+      <th
+        [nzChecked]="checked"
+        [nzIndeterminate]="indeterminate"
+        (nzCheckedChange)="onAllChecked($event)"
+      >
+        序号
+      </th>
+      <th nzWidth="" nzAlign="center">接口名称</th>
+      <th nzWidth="" nzAlign="center">路径</th>
+      <th nzWidth="" nzAlign="center">请求方法</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let api of apiAddTable.data;index as index">
+      <td [nzChecked]="setOfCheckedId.has(api.id)"
+          [nzDisabled]="api.disabled"
+          (nzCheckedChange)="onItemChecked(api.id, $event)"
+      >
+        {{index}}
+      </td>
+      <td nzAlign="center">{{api.name}}</td>
+      <td nzAlign="center">{{api.url}}</td>
+      <td nzAlign="center">{{api.type}}</td>
+    </tr>
+    </tbody>
+  </nz-table>
+</nz-modal>

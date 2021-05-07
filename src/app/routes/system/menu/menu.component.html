@@ -1,0 +1,206 @@
+<app-main-content>
+  <app-content-header [title]="'菜单列表'">
+    <button nz-button nzType="primary"
+            type="button" (click)="showModal('新增菜单')">
+      <i nz-icon nzType="plus"></i>新建
+    </button>
+  </app-content-header>
+  <app-content-body>
+
+    <div>
+      <nz-table
+        nzBordered #basicTable
+        nzSize="small"
+        [nzShowPagination]="false"
+        [nzFrontPagination]="false"
+        [nzLoading]="nzLoading"
+        [nzData]="dataList"
+      >
+        <thead>
+        <tr>
+          <th nzWidth="80px" nzAlign="center">序号</th>
+          <th nzWidth="200px" nzAlign="center">菜单名称</th>
+          <th nzWidth="200px" nzAlign="center">前端路由</th>
+          <th nzWidth="80px" nzAlign="center">前端图标</th>
+          <th nzWidth="200px" nzAlign="center">上级</th>
+          <th nzWidth="80px" nzAlign="center">层级</th>
+          <th nzWidth="80px" nzAlign="center">状态</th>
+          <th nzWidth="60px" nzAlign="center">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <ng-container *ngFor="let data of basicTable.data">
+          <ng-container *ngFor="let item of expandData[data.id]">
+            <tr *ngIf="(item.parent && item.parent.expand) || !item.parent">
+              <td nzAlign="center"
+                  [nzIndentSize]="item.level! * 20"
+                  [nzShowExpand]="item.directory==true"
+                  [(nzExpand)]="item.expand"
+                  (nzExpandChange)="collapse(expandData[data.id], item, $event)"
+              >
+                {{ item.sort }}
+              </td>
+              <td nzAlign="center">{{ item.title }}</td>
+              <td nzAlign="center">{{ item.path }}</td>
+              <td nzAlign="center">
+                <i nz-icon nzType="{{item.icon}}"></i>
+              </td>
+              <td nzAlign="center">{{ item.parent?.title }}</td>
+              <td nzAlign="center">{{ item.level }}</td>
+              <td nzAlign="center">
+                <nz-switch
+                  [nzCheckedChildren]="'启用'"
+                  [nzUnCheckedChildren]="'禁用'"
+                  [ngModel]="!item.disabled"
+                  (ngModelChange)="enable(item.id, $event)">
+                </nz-switch>
+              </td>
+              <td nzAlign="center">
+                <nz-space>
+                  <nz-space-item>
+                    <button nz-button nzType="link" (click)="showDrawer(item.id)">编辑</button>
+                  </nz-space-item>
+                  <nz-space-item>
+                    <button nz-button nzType="link" nzDanger (click)="delete(item.id)">删除</button>
+                  </nz-space-item>
+                </nz-space>
+              </td>
+            </tr>
+          </ng-container>
+        </ng-container>
+        </tbody>
+      </nz-table>
+    </div>
+  </app-content-body>
+</app-main-content>
+<nz-modal [(nzVisible)]="modalVisible" [nzTitle]="modalTitle" (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()">
+  <form nz-form
+        [formGroup]="dataForm"
+        (ngSubmit)="submitDataForm()">
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title" nzRequired>菜单名称</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入菜单名称">
+        <input placeholder="菜单名称" formControlName="title" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="icon">图标</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input placeholder="图标" formControlName="icon" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="parentId" nzRequired>父级菜单</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请选择父级菜单">
+        <nz-select formControlName="parentId">
+          <nz-option [nzValue]="0" [nzLabel]="'无'"></nz-option>
+          <nz-option *ngFor="let root of parentMenus" [nzValue]="root.id" [nzLabel]="root.title"></nz-option>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="path" nzRequired>前端路由</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入前端路由">
+        <input placeholder="前端路由" formControlName="path" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title" nzRequired>菜单层级</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入菜单层级">
+        <input type="text" [appInputType]="'number'" placeholder="菜单层级，0为根菜单" formControlName="level" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title">菜单排序</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input type="text" [appInputType]="'number'" placeholder="菜单排序" formControlName="sort" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title" nzRequired>前端路由hash</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入前端路由hash">
+        <input placeholder="前端路由hash有用路由复用" formControlName="hash" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title">是否目录</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <nz-switch formControlName="directory"></nz-switch>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</nz-modal>
+<nz-drawer
+  [nzBodyStyle]="{ height: 'calc(100% - 55px)', overflow: 'auto', 'padding-bottom': '53px' }"
+  [nzMaskClosable]="false"
+  [nzWidth]="450"
+  [nzVisible]="drawerVisible"
+  nzTitle="修改菜单"
+  (nzOnClose)="drawerClose()">
+  <form nz-form
+        [formGroup]="updateForm"
+        (ngSubmit)="submitUpdateForm()">
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title" nzRequired>菜单名称</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入菜单名称">
+        <input placeholder="菜单名称" formControlName="title" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="icon">图标</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input placeholder="图标" formControlName="icon" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="parentId" nzRequired>父级菜单</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请选择父级菜单">
+        <nz-select formControlName="parentId">
+          <nz-option [nzValue]="0" [nzLabel]="'无'"></nz-option>
+          <nz-option *ngFor="let root of parentMenus" [nzValue]="root.id" [nzLabel]="root.title"></nz-option>
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="path" nzRequired>前端路由</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入前端路由">
+        <input placeholder="前端路由" formControlName="path" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title" nzRequired>菜单层级</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入菜单层级">
+        <input [appInputType]="'number'" placeholder="菜单层级，0为根菜单" formControlName="level" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title">菜单排序</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <input [appInputType]="'number'" placeholder="菜单排序" formControlName="sort" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title" nzRequired>前端路由hash</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24" nzErrorTip="请输入前端路由hash">
+        <input placeholder="前端路由hash有用路由复用" formControlName="hash" nz-input/>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSm]="6" [nzXs]="24" nzFor="title">是否目录</nz-form-label>
+      <nz-form-control [nzSm]="14" [nzXs]="24">
+        <nz-switch formControlName="directory"></nz-switch>
+      </nz-form-control>
+    </nz-form-item>
+    <nz-form-item>
+      <nz-space style="margin: auto">
+        <nz-space-item>
+          <button nz-button nzType="primary" (click)="drawerOk()">确定</button>
+        </nz-space-item>
+        <nz-space-item>
+          <button (click)="drawerClose()" nz-button type="button" nzType="default">取消</button>
+        </nz-space-item>
+      </nz-space>
+    </nz-form-item>
+    <input formControlName="id" type="hidden">
+  </form>
+</nz-drawer>

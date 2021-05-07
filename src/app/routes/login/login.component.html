@@ -1,0 +1,39 @@
+<nz-layout class="body">
+  <nz-content class="content">
+    <nz-card class="login-wrapper">
+      <div class="title">
+
+        <div class="logo">
+          <img class="logo-img" src="assets/logo.jpg">
+          <b class="logo-text">中国移动</b>
+        </div>
+
+        <div class="subtitle">
+          <span>网优大数据平台</span>
+        </div>
+      </div>
+
+      <form nz-form [formGroup]="loginForm" class="login-form" (ngSubmit)="submitForm()">
+        <nz-form-item class="login-form-margin">
+          <nz-form-control nzErrorTip="请输入用户名">
+            <nz-input-group nzSize="large" nzPrefixIcon="user">
+              <input nzSize="large" type="text" nz-input formControlName="username" placeholder="用户名"/>
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item class="login-form-margin">
+          <nz-form-control nzErrorTip="请输入密码">
+            <nz-input-group nzSize="large" nzPrefixIcon="lock">
+              <input nzSize="large" type="password" nz-input formControlName="password" placeholder="密码"/>
+            </nz-input-group>
+          </nz-form-control>
+        </nz-form-item>
+        <button nzSize="large" [nzLoading]="loading" nz-button nzBlock [nzType]="'primary'">登录
+        </button>
+      </form>
+    </nz-card>
+  </nz-content>
+  <nz-footer>x ©2020 Implement By zrxk Co.Ltd</nz-footer>
+</nz-layout>
+
+
