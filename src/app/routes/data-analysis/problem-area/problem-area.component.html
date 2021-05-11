@@ -1,0 +1,63 @@
+<app-main-content>
+  <app-content-header [title]="'问题小区'">
+    <nz-upload
+      [nzAction]="url"
+      (nzChange)="handleChange($event)"
+    >
+      <button nz-button><i nz-icon nzType="upload"></i>导入数据</button>
+    </nz-upload>
+  </app-content-header>
+  <app-content-body>
+
+    <div nz-row>
+      <form nz-form [nzLayout]="'inline'" [formGroup]="selectForm">
+        <nz-form-item>
+          <nz-form-control nzErrorTip="请选择查询日期！">
+            <nz-date-picker formControlName="date"></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <button nz-button nzType="primary" type="button" (click)="search()" class="search-button">
+            <i nz-icon nzType="search" nzTheme="outline"></i>
+            查询
+          </button>
+          <button nz-button nzType="default" type="reset"><i nz-icon nzType="rest" nzTheme="outline"></i>重置</button>
+        </nz-form-item>
+      </form>
+    </div>
+
+    <div nz-row nzGutter="8">
+      <div nz-col nzSpan="12">
+        <div echarts [options]="pieOption"></div>
+      </div>
+      <div nz-col nzSpan="12">
+        <div echarts [options]="barOption"></div>
+      </div>
+    </div>
+
+    <nz-table #basicTable [nzData]="dataList">
+      <thead>
+      <tr>
+        <th>序号</th>
+        <th>高负荷小区</th>
+        <th>高掉线小区</th>
+        <th>低接通小区</th>
+        <th>VOLTE问题小区</th>
+        <th>高干扰小区</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let data of basicTable.data">
+        <td>{{data.id}}</td>
+        <td>A{{data.highLoad | number:'0.0-0'}}小区</td>
+        <td>A{{data.highOffLine | number:'0.0-0'}}小区</td>
+        <td>A{{data.lowConnect | number:'0.0-0'}}小区</td>
+        <td>A{{data.volteProblem | number:'0.0-0'}}小区</td>
+        <td>A{{data.highDisturb | number:'0.0-0'}}小区</td>
+      </tr>
+      </tbody>
+    </nz-table>
+    
+  </app-content-body>
+</app-main-content>

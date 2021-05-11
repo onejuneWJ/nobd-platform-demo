@@ -14,6 +14,10 @@ const routes: Route[] = [
   {
     path: 'system',
     loadChildren: () => import('./system/system.module').then(value => value.SystemModule)
+  },
+  {
+    path: 'data-analysis',
+    loadChildren: () => import('./data-analysis/data-analysis.module').then(value => value.DataAnalysisModule)
   }
 ];
 
